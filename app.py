@@ -5,7 +5,6 @@ import whisper_timestamped as whisper
 
 from pydub import AudioSegment
 from pydub.generators import Sine
-from pydub.playback import play
 
 import gradio as gr
 import spaces
