@@ -11,7 +11,7 @@ pinned: false
 
 # Word Censoring
 
-- Built on Whisper and Python
+- Built on Whisper, Pydub, and Gradio.
 - Censors words or phrases in audio.
 - Supports frequency and custom audio censoring (this will continue where the last censorship stopped in the audio).
 
