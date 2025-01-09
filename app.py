@@ -8,6 +8,7 @@ from pydub.generators import Sine
 from pydub.playback import play
 
 import gradio as gr
+import spaces
 
 import warnings
 
@@ -87,6 +88,7 @@ def get_start_and_end_times(transcript_timestamps, censoring_words):
     return start_times, end_times
 
 
+@spaces.GPU()
 def censor_words(
     audio_path,
     censoring_words,
