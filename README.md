@@ -1,3 +1,14 @@
+---
+title: Word Censorer
+emoji: 🤐
+colorFrom: purple
+colorTo: pink
+sdk: gradio
+sdk_version: 5.10
+app_file: app.py
+pinned: false
+---
+
 # Word Censoring
 
 - Built on Whisper and Python
