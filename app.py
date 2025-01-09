@@ -136,7 +136,7 @@ with gr.Blocks() as demo:
     # Word Censoring
     - Built on Whisper and Python
     - Censors words or phrases in audio.
-    - Supports frequency and audio censoring (this will continue where the last censorship stopped in the audio).
+    - Supports frequency and custom audio censoring (this will continue where the last censorship stopped in the audio).
 """
     )
 
