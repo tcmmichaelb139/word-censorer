@@ -15,7 +15,7 @@ warnings.filterwarnings("ignore")
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-BUFFER = 0.2
+BUFFER = 2
 
 
 def new_audio_location(audio_path):
@@ -29,6 +29,8 @@ def new_audio_location(audio_path):
 def replace_segments_with_note(
     audio_file, start_times, end_times, censoring_type, censoring_opts
 ):
+    start_times = start_times[::-1]
+    end_times = end_times[::-1]
     current_time = 0
     audio = AudioSegment.from_file(audio_file)
 
@@ -48,11 +50,25 @@ def replace_segments_with_note(
         else:
             note = censoring_type[
                 current_time : current_time
-                + max((end - start - 2 * BUFFER), censoring_opts["duration"])
+                + max(
+                    (
+                        end
+                        - start
+                        - (
+                            censoring_opts["left_buffer"]
+                            + censoring_opts["right_buffer"]
+                        )
+                    ),
+                    censoring_opts["duration"],
+                )
             ]
             current_time += end - start
 
-        audio = audio[: start + BUFFER] + note + audio[end - BUFFER :]
+        audio = (
+            audio[: start + censoring_opts["left_buffer"]]
+            + note
+            + audio[end - censoring_opts["right_buffer"] :]
+        )
 
     return audio
 
@@ -95,6 +111,8 @@ def censor_words(
     censoring_freq,
     censoring_audio,
     censoring_duration,
+    left_buffer,
+    right_buffer,
 ):
     censoring_words = [word.strip().lower() for word in censoring_words.split(",")]
 
@@ -118,7 +136,11 @@ def censor_words(
         start_times,
         end_times,
         censoring_freq if censoring_type == "Frequency" else censoring_audio,
-        {"duration": censoring_duration},
+        {
+            "duration": censoring_duration,
+            "left_buffer": left_buffer,
+            "right_buffer": right_buffer,
+        },
     )
 
     transcript = transcript.strip()
@@ -162,11 +184,19 @@ with gr.Blocks() as demo:
                         )
 
                     with gr.Accordion("Censoring Audio Options", open=False):
-                        censoring_audio = gr.Audio(type="filepath")
+                        censoring_audio = gr.Audio(type="filepath", label="Audio")
 
                 with gr.Group():
                     censoring_duration = gr.Slider(
                         4, 3000, label="Min Censorship Duration (ms)", step=1, value=4
+                    )
+
+                    left_buffer = gr.Slider(
+                        0, 1000, label="Left Buffer (ms)", step=1, value=BUFFER
+                    )
+
+                    right_buffer = gr.Slider(
+                        0, 1000, label="Right Buffer (ms)", step=1, value=BUFFER
                     )
 
         with gr.Column():
@@ -187,6 +217,18 @@ with gr.Blocks() as demo:
                 440,
                 None,
                 4,
+                2,
+                2,
+            ],
+            [
+                "tests/example.m4a",
+                "censorship",
+                "Frequency",
+                440,
+                None,
+                4,
+                500,
+                2,
             ],
             [
                 "tests/example.m4a",
@@ -195,6 +237,8 @@ with gr.Blocks() as demo:
                 440,
                 "tests/Rick-Roll-Sound-Effect.mp3",
                 1000,
+                2,
+                2,
             ],
         ],
         inputs=[
@@ -204,6 +248,8 @@ with gr.Blocks() as demo:
             censoring_freq,
             censoring_audio,
             censoring_duration,
+            left_buffer,
+            right_buffer,
         ],
     )
 
@@ -216,6 +262,8 @@ with gr.Blocks() as demo:
             censoring_freq,
             censoring_audio,
             censoring_duration,
+            left_buffer,
+            right_buffer,
         ],
         outputs=[transcript, output],
     )
